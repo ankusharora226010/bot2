@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot with Left-Right Alignment</title>
+  <style>
+    body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  height: 100vh;
+  background: #f4f4f9;
+}
+
+#chatbot {
+  position: fixed;
+  bottom: 100px; /* Move the chatbot above the button with a 10px gap */
+  right: 20px;
+  width: 350px;
+  height: 500px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  animation: slide-in 0.3s ease-in-out;
+}
+
+#chat-header {
+  background: #da0000;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#chat-box {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;   
+}
+
+.message {
+  margin: 5px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  max-width: 70%;
+}
+
+.user-message {
+  background: #ff4545;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.bot-message {
+  background: #e2e2e2;
+  color: #000;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+}
+
+#chat-input-container {
+  display: flex;
+  padding: 10px;
+  background: #fff;
+  border-top: 1px solid #ccc;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#send-button {
+  padding: 8px 15px;
+  margin-left: 10px;
+  background: #da0000;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#send-button:hover {
+  background: #d46d6d;
+}
+
+#chat-toggle {
+  position: fixed;
+  bottom: 20px; /* Keep the button at the bottom of the screen */
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: #da0000;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: bounce 1s infinite;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="chatbot">
+    <div id="chat-header" style="font-size: 2.8rem;">ZENCIA</div>
+    <div id="chat-box"></div>
+    <div id="chat-input-container">
+      <input id="chat-input" type="text" placeholder="Type a message..." />
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+  <div id="chat-toggle">💬</div>
+
+  <script>
+    const chatBot = document.getElementById("chatbot");
+    const chatToggle = document.getElementById("chat-toggle");
+    const chatBox = document.getElementById("chat-box");
+    const chatInput = document.getElementById("chat-input");
+    const sendButton = document.getElementById("send-button");
+
+    // Show/Hide chatbot
+    chatToggle.addEventListener("click", () => {
+      if (chatBot.style.display === "none" || !chatBot.style.display) {
+        chatBot.style.display = "flex";
+      } else {
+        chatBot.style.display = "none";
+      }
+    });
+
+    const appendMessage = (message, type) => {
+      const messageElement = document.createElement("div");
+      messageElement.className = `message ${type === "user" ? "user-message" : "bot-message"}`;
+      messageElement.textContent = message;
+      chatBox.appendChild(messageElement);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    const sendMessage = async () => {
+      const userMessage = chatInput.value.trim();
+      if (!userMessage) return;
+
+      appendMessage(userMessage, "user");
+      chatInput.value = "";
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMessage }),
+        });
+
+        const data = await response.json();
+        appendMessage(data.response, "bot");
+      } catch (err) {
+        appendMessage("Error: Could not connect to server.", "bot");
+      }
+    };
+
+    sendButton.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
